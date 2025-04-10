@@ -19,7 +19,7 @@ export default function WatchlistPage() {
 
   useEffect(() => {
     const init = async () => {
-      const database = await openDB("stockdatabase", 1, {
+      const database = await openDB("StockDatabase", 1, {
         upgrade(db) {
           if (!db.objectStoreNames.contains("watchlists")) {
             db.createObjectStore("watchlists", { keyPath: "id" });
