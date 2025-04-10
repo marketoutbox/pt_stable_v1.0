@@ -1,9 +1,11 @@
 export default function Card({ title, children, className = "" }) {
   return (
-    <div className={`bg-blue-900/50 backdrop-blur-sm rounded-lg shadow-lg border border-blue-800 ${className}`}>
+    <div
+      className={`bg-gradient-to-br from-navy-900/90 to-navy-800/90 backdrop-blur-sm rounded-lg shadow-lg border border-navy-700/20 ${className}`}
+    >
       {title && (
-        <div className="px-6 py-4 border-b border-blue-800">
-          <h3 className="text-lg font-medium text-blue-100">{title}</h3>
+        <div className="px-6 py-4 border-b border-navy-700/20">
+          <h3 className="text-lg font-medium text-navy-100">{title}</h3>
         </div>
       )}
       <div className="px-6 py-4">{children}</div>
