@@ -3,17 +3,13 @@
 import { useState, useEffect } from "react"
 import { openDB } from "idb"
 import calculateZScore from "../utils/calculations"
-import Card from "../components/Card"
-import Button from "../components/Button"
-import Input from "../components/Input"
-import Select from "../components/Select"
 
 export default function Backtest() {
   const [stocks, setStocks] = useState([])
   const [selectedPair, setSelectedPair] = useState({ stockA: "", stockB: "" })
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
-  const [entryZ, setEntryZ] = useState(2.5)
+  const [entryZ, setEntryZ] = useState(2.0)
   const [exitZ, setExitZ] = useState(1.5)
   const [backtestData, setBacktestData] = useState([])
   const [tradeResults, setTradeResults] = useState([])
@@ -162,86 +158,95 @@ export default function Backtest() {
   const avgProfit = tradeResults.length > 0 ? totalProfit / tradeResults.length : 0
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold gradient-text inline-block">Pair Trading Backtest</h1>
-        <p className="text-navy-200 mt-2">Price Ratio Model</p>
+    <div className="space-y-8">
+      <div className="text-center space-y-2">
+        <h1 className="text-5xl font-bold text-white">Pair Trading Backtest</h1>
+        <p className="text-xl text-gray-300">Price Ratio Model</p>
       </div>
 
-      <Card title="Backtest Parameters">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="card">
+        <h2 className="text-2xl font-bold text-white mb-6">Backtest Parameters</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <label className="block text-sm font-medium text-navy-200 mb-1">Date Range</label>
+            <label className="block text-base font-medium text-gray-300 mb-2">Date Range</label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-navy-300 mb-1">From:</label>
-                <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                <label className="block text-sm text-gray-400 mb-1">From Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="input-field"
+                />
               </div>
               <div>
-                <label className="block text-xs text-navy-300 mb-1">To:</label>
-                <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                <label className="block text-sm text-gray-400 mb-1">To Date</label>
+                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="input-field" />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-navy-200 mb-1">Stock Selection</label>
+            <label className="block text-base font-medium text-gray-300 mb-2">Stock Selection</label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-navy-300 mb-1">Stock A:</label>
-                <Select name="stockA" value={selectedPair.stockA} onChange={handleSelection}>
-                  <option value="">-- Select --</option>
+                <label className="block text-sm text-gray-400 mb-1">Stock A</label>
+                <select name="stockA" value={selectedPair.stockA} onChange={handleSelection} className="input-field">
+                  <option value="">Select</option>
                   {stocks.map((symbol) => (
                     <option key={symbol} value={symbol}>
                       {symbol}
                     </option>
                   ))}
-                </Select>
+                </select>
               </div>
               <div>
-                <label className="block text-xs text-navy-300 mb-1">Stock B:</label>
-                <Select name="stockB" value={selectedPair.stockB} onChange={handleSelection}>
-                  <option value="">-- Select --</option>
+                <label className="block text-sm text-gray-400 mb-1">Stock B</label>
+                <select name="stockB" value={selectedPair.stockB} onChange={handleSelection} className="input-field">
+                  <option value="">Select</option>
                   {stocks.map((symbol) => (
                     <option key={symbol} value={symbol}>
                       {symbol}
                     </option>
                   ))}
-                </Select>
+                </select>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <label className="block text-sm font-medium text-navy-200 mb-1">Entry Z-score</label>
-            <Input
+            <label className="block text-base font-medium text-gray-300 mb-2">Entry Z-score</label>
+            <input
               type="number"
               step="0.1"
               value={entryZ}
               onChange={(e) => setEntryZ(Number.parseFloat(e.target.value))}
+              className="input-field"
             />
-            <p className="mt-1 text-xs text-navy-300">Threshold for entering a trade position</p>
+            <p className="mt-1 text-sm text-gray-400">Z-score to enter into long/short trade</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-navy-200 mb-1">Exit Z-score</label>
-            <Input
+            <label className="block text-base font-medium text-gray-300 mb-2">Exit Z-score</label>
+            <input
               type="number"
               step="0.1"
               value={exitZ}
               onChange={(e) => setExitZ(Number.parseFloat(e.target.value))}
+              className="input-field"
             />
-            <p className="mt-1 text-xs text-navy-300">Threshold for exiting a trade position</p>
+            <p className="mt-1 text-sm text-gray-400">Z-score to exit from a trade position</p>
           </div>
         </div>
 
-        <div className="flex justify-center">
-          <Button onClick={runBacktest} disabled={isLoading} primary className="px-8">
+        <div className="flex justify-center mt-8">
+          <button onClick={runBacktest} disabled={isLoading} className="btn-primary">
             {isLoading ? (
               <span className="flex items-center">
                 <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-navy-950"
+                  className="animate-spin -ml-1 mr-2 h-5 w-5"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -258,58 +263,57 @@ export default function Backtest() {
             ) : (
               "Run Backtest"
             )}
-          </Button>
+          </button>
         </div>
-      </Card>
+      </div>
 
       {isLoading && (
-        <div className="flex justify-center my-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-400"></div>
+        <div className="flex justify-center my-12">
+          <svg
+            className="animate-spin h-12 w-12 text-gold-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
         </div>
       )}
 
       {backtestData.length > 0 && !isLoading && (
-        <Card title="Backtest Data">
+        <div className="card">
+          <h2 className="text-2xl font-bold text-white mb-4">Backtest Data</h2>
           <div className="overflow-x-auto">
             <div className="max-h-64 overflow-y-auto">
-              <table className="min-w-full divide-y divide-navy-700/20">
-                <thead className="bg-gradient-to-r from-navy-900/90 to-navy-800/90 sticky top-0">
+              <table className="min-w-full divide-y divide-navy-700">
+                <thead className="bg-navy-800 sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                      {selectedPair.stockA} Close
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                      {selectedPair.stockB} Close
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                      Ratio
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                      Z-score
-                    </th>
+                    <th className="table-header">Date</th>
+                    <th className="table-header">{selectedPair.stockA} Close</th>
+                    <th className="table-header">{selectedPair.stockB} Close</th>
+                    <th className="table-header">Ratio</th>
+                    <th className="table-header">Z-score</th>
                   </tr>
                 </thead>
-                <tbody className="bg-navy-900/20 divide-y divide-navy-700/10">
+                <tbody className="divide-y divide-navy-800">
                   {backtestData.map((row, index) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-navy-900/10" : "bg-navy-800/10"}>
-                      <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">{row.date}</td>
-                      <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">
-                        {row.stockAClose.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">
-                        {row.stockBClose.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">{row.ratio.toFixed(4)}</td>
+                    <tr key={index} className={index % 2 === 0 ? "bg-navy-900/50" : "bg-navy-900/30"}>
+                      <td className="table-cell">{row.date}</td>
+                      <td className="table-cell">{row.stockAClose.toFixed(2)}</td>
+                      <td className="table-cell">{row.stockBClose.toFixed(2)}</td>
+                      <td className="table-cell">{row.ratio.toFixed(4)}</td>
                       <td
-                        className={`px-6 py-2 whitespace-nowrap text-sm font-medium ${
+                        className={`table-cell font-medium ${
                           row.zScore > entryZ || row.zScore < -entryZ
-                            ? "gold-gradient-text"
+                            ? "text-gold-400"
                             : row.zScore > exitZ || row.zScore < -exitZ
-                              ? "text-gold-300/70"
-                              : "text-navy-100"
+                              ? "text-gold-400/70"
+                              : "text-white"
                         }`}
                       >
                         {row.zScore.toFixed(4)}
@@ -320,83 +324,70 @@ export default function Backtest() {
               </table>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {tradeResults.length > 0 && !isLoading && (
-        <Card title="Trade Results">
+        <div className="card">
+          <h2 className="text-2xl font-bold text-white mb-4">Trade Results</h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-navy-700/20">
-              <thead className="bg-gradient-to-r from-navy-900/90 to-navy-800/90">
+            <table className="min-w-full divide-y divide-navy-700">
+              <thead className="bg-navy-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                    Entry Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                    Exit Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                    Days
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                    Profit %
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-navy-200 uppercase tracking-wider">
-                    Max Drawdown %
-                  </th>
+                  <th className="table-header">Entry Date</th>
+                  <th className="table-header">Exit Date</th>
+                  <th className="table-header">Type</th>
+                  <th className="table-header">Days</th>
+                  <th className="table-header">Profit %</th>
+                  <th className="table-header">Max Drawdown %</th>
                 </tr>
               </thead>
-              <tbody className="bg-navy-900/20 divide-y divide-navy-700/10">
+              <tbody className="divide-y divide-navy-800">
                 {tradeResults.map((trade, index) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-navy-900/10" : "bg-navy-800/10"}>
-                    <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">{trade.entryDate}</td>
-                    <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">{trade.exitDate}</td>
+                  <tr key={index} className={index % 2 === 0 ? "bg-navy-900/50" : "bg-navy-900/30"}>
+                    <td className="table-cell">{trade.entryDate}</td>
+                    <td className="table-cell">{trade.exitDate}</td>
                     <td
-                      className={`px-6 py-2 whitespace-nowrap text-sm font-medium ${
-                        trade.type === "LONG" ? "text-green-400" : "text-red-400"
-                      }`}
+                      className={`table-cell font-medium ${trade.type === "LONG" ? "text-green-400" : "text-red-400"}`}
                     >
                       {trade.type}
                     </td>
-                    <td className="px-6 py-2 whitespace-nowrap text-sm text-navy-100">{trade.holdingPeriod}</td>
+                    <td className="table-cell">{trade.holdingPeriod}</td>
                     <td
-                      className={`px-6 py-2 whitespace-nowrap text-sm font-medium ${
+                      className={`table-cell font-medium ${
                         Number.parseFloat(trade.profitPercent) >= 0 ? "text-green-400" : "text-red-400"
                       }`}
                     >
                       {trade.profitPercent}%
                     </td>
-                    <td className="px-6 py-2 whitespace-nowrap text-sm text-red-400">{trade.maxDrawdownPercent}%</td>
+                    <td className="table-cell text-red-400">{trade.maxDrawdownPercent}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-navy-900/40 to-navy-800/40 rounded-lg p-4 border border-navy-700/20">
-              <p className="text-sm text-navy-300">Total Trades</p>
-              <p className="text-2xl font-bold gold-gradient-text inline-block">{tradeResults.length}</p>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-navy-800/50 rounded-lg p-4 border border-navy-700">
+              <p className="text-sm text-gray-300">Total Trades</p>
+              <p className="text-2xl font-bold text-gold-400">{tradeResults.length}</p>
             </div>
-            <div className="bg-gradient-to-br from-navy-900/40 to-navy-800/40 rounded-lg p-4 border border-navy-700/20">
-              <p className="text-sm text-navy-300">Profitable Trades</p>
+            <div className="bg-navy-800/50 rounded-lg p-4 border border-navy-700">
+              <p className="text-sm text-gray-300">Profitable Trades</p>
               <p className="text-2xl font-bold text-green-400">{profitableTrades}</p>
             </div>
-            <div className="bg-gradient-to-br from-navy-900/40 to-navy-800/40 rounded-lg p-4 border border-navy-700/20">
-              <p className="text-sm text-navy-300">Win Rate</p>
-              <p className="text-2xl font-bold gold-gradient-text inline-block">{winRate.toFixed(1)}%</p>
+            <div className="bg-navy-800/50 rounded-lg p-4 border border-navy-700">
+              <p className="text-sm text-gray-300">Win Rate</p>
+              <p className="text-2xl font-bold text-gold-400">{winRate.toFixed(1)}%</p>
             </div>
-            <div className="bg-gradient-to-br from-navy-900/40 to-navy-800/40 rounded-lg p-4 border border-navy-700/20">
-              <p className="text-sm text-navy-300">Avg. Profit per Trade</p>
+            <div className="bg-navy-800/50 rounded-lg p-4 border border-navy-700">
+              <p className="text-sm text-gray-300">Avg. Profit per Trade</p>
               <p className={`text-2xl font-bold ${avgProfit >= 0 ? "text-green-400" : "text-red-400"}`}>
                 {avgProfit.toFixed(2)}%
               </p>
             </div>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   )
