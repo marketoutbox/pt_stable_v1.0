@@ -3,18 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { openDB } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Card, CardContent } from '../../components/ui/card';
+import { Label } from '../../components/ui/label';
 import {
-  Button,
-  Input,
-  Card,
-  CardContent,
-  Label,
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from '@/components/ui'; // Adjust import paths as per your component structure
+} from '../../components/ui/select';
 
 const WatchlistPage = () => {
   const [symbolOptions, setSymbolOptions] = useState<string[]>([]);
