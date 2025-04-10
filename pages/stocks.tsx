@@ -2,10 +2,6 @@
 
 import { useState } from "react"
 import { saveStockData, getStockData } from "../lib/indexedDB"
-import StockTable from "../components/StockTable"
-import Card from "../components/Card"
-import Button from "../components/Button"
-import Input from "../components/Input"
 
 export default function Stocks() {
   const [symbols, setSymbols] = useState("")
@@ -117,33 +113,34 @@ export default function Stocks() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold gradient-text inline-block">Stock Data Management</h1>
-        <p className="text-navy-200 mt-2">Fetch and manage stock data from Yahoo Finance</p>
+    <div className="space-y-8">
+      <div className="text-center space-y-2">
+        <h1 className="text-5xl font-bold text-white">Stock Data Management</h1>
+        <p className="text-xl text-gray-300">Fetch and manage stock data from Yahoo Finance</p>
       </div>
 
-      <Card>
-        <div className="space-y-4">
+      <div className="card">
+        <div className="space-y-6">
           <div>
-            <label htmlFor="symbols" className="block text-sm font-medium text-navy-200 mb-1">
+            <label htmlFor="symbols" className="block text-base font-medium text-gray-300 mb-2">
               Stock Symbols
             </label>
-            <Input
+            <input
               id="symbols"
               placeholder="Enter Stock Symbols (comma-separated, e.g. AAPL,GOOGL,MSFT)"
               value={symbols}
               onChange={(e) => setSymbols(e.target.value)}
+              className="input-field"
             />
-            <p className="mt-1 text-sm text-navy-300">Enter comma-separated stock symbols to fetch or load data</p>
+            <p className="mt-1 text-sm text-gray-400">Enter comma-separated stock symbols to fetch or load data</p>
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <Button onClick={fetchStockData} disabled={loading} primary>
+            <button onClick={fetchStockData} disabled={loading} className="btn-primary">
               {loading ? (
                 <span className="flex items-center">
                   <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-navy-950"
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -167,30 +164,58 @@ export default function Stocks() {
               ) : (
                 "Fetch & Store"
               )}
-            </Button>
-            <Button onClick={loadStockData}>Load from IndexedDB</Button>
+            </button>
+            <button onClick={loadStockData} className="btn-secondary">
+              Load from IndexedDB
+            </button>
           </div>
 
           {message.text && (
             <div
-              className={`p-3 rounded-md ${
+              className={`p-4 rounded-md ${
                 message.type === "success"
-                  ? "bg-gradient-to-r from-green-900/30 to-green-800/30 text-green-200 border border-green-800/20"
+                  ? "bg-green-900/30 text-green-300 border border-green-800"
                   : message.type === "error"
-                    ? "bg-gradient-to-r from-red-900/30 to-red-800/30 text-red-200 border border-red-800/20"
-                    : "bg-gradient-to-r from-yellow-900/30 to-yellow-800/30 text-yellow-200 border border-yellow-800/20"
+                    ? "bg-red-900/30 text-red-300 border border-red-800"
+                    : "bg-yellow-900/30 text-yellow-300 border border-yellow-800"
               }`}
             >
               {message.text}
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
       {stocks.length > 0 && (
-        <Card title={`Stock Data (${stocks.length} records)`}>
-          <StockTable stocks={stocks} />
-        </Card>
+        <div className="card">
+          <h2 className="text-2xl font-bold text-white mb-4">Stock Data ({stocks.length} records)</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-navy-700">
+              <thead className="bg-navy-800">
+                <tr>
+                  <th className="table-header">Date</th>
+                  <th className="table-header">Symbol</th>
+                  <th className="table-header">Open</th>
+                  <th className="table-header">High</th>
+                  <th className="table-header">Low</th>
+                  <th className="table-header">Close</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-navy-800">
+                {stocks.map((stock, index) => (
+                  <tr key={index} className={index % 2 === 0 ? "bg-navy-900/50" : "bg-navy-900/30"}>
+                    <td className="table-cell">{stock.date}</td>
+                    <td className="table-cell text-gold-400 font-medium">{stock.symbol}</td>
+                    <td className="table-cell">{stock.open.toFixed(2)}</td>
+                    <td className="table-cell">{stock.high.toFixed(2)}</td>
+                    <td className="table-cell">{stock.low.toFixed(2)}</td>
+                    <td className="table-cell">{stock.close.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   )
