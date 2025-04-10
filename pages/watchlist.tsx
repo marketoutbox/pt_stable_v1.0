@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { openDB } from "idb"
-import { saveWatchlist, getWatchlists, deleteWatchlist } from "../lib/watchlistDB"
+import { initDatabase, saveWatchlist, getWatchlists, deleteWatchlist } from "../lib/watchlistDB"
 
 export default function Watchlist() {
   const [stocks, setStocks] = useState([])
@@ -13,13 +13,35 @@ export default function Watchlist() {
   const [editId, setEditId] = useState(null)
   const [message, setMessage] = useState({ text: "", type: "" })
   const [isLoading, setIsLoading] = useState(false)
+  const [dbInitialized, setDbInitialized] = useState(false)
 
-  // Fetch stocks and watchlists on component mount
+  // Initialize database on component mount
   useEffect(() => {
+    const initialize = async () => {
+      try {
+        setMessage({ text: "Initializing database...", type: "info" })
+        await initDatabase()
+        setDbInitialized(true)
+        setMessage({ text: "Database initialized successfully", type: "success" })
+      } catch (error) {
+        console.error("Error initializing database:", error)
+        setMessage({ text: "Failed to initialize database: " + error.message, type: "error" })
+      }
+    }
+
+    initialize()
+  }, [])
+
+  // Fetch stocks and watchlists after database is initialized
+  useEffect(() => {
+    if (!dbInitialized) return
+
     const fetchData = async () => {
       try {
+        setMessage({ text: "Loading data...", type: "info" })
+
         // Fetch stocks from IndexedDB
-        const db = await openDB("StockDatabase", 2) // Match version with watchlistDB.js
+        const db = await openDB("StockDatabase", 10) // Match version with watchlistDB.js
         const tx = db.transaction("stocks", "readonly")
         const store = tx.objectStore("stocks")
         const allStocks = await store.getAll()
@@ -30,6 +52,8 @@ export default function Watchlist() {
         // Fetch watchlists
         const watchlistData = await getWatchlists()
         setWatchlists(watchlistData || [])
+
+        setMessage({ text: "Data loaded successfully", type: "success" })
       } catch (error) {
         console.error("Error fetching data:", error)
         setMessage({ text: "Failed to load data: " + error.message, type: "error" })
@@ -37,7 +61,7 @@ export default function Watchlist() {
     }
 
     fetchData()
-  }, [])
+  }, [dbInitialized])
 
   const handlePairSelection = (event) => {
     const { name, value } = event.target
@@ -172,6 +196,20 @@ export default function Watchlist() {
         <p className="text-xl text-gray-300">Create and manage your pair trading watchlists</p>
       </div>
 
+      {message.text && (
+        <div
+          className={`p-4 rounded-md ${
+            message.type === "success"
+              ? "bg-green-900/30 text-green-300 border border-green-800"
+              : message.type === "error"
+                ? "bg-red-900/30 text-red-300 border border-red-800"
+                : "bg-blue-900/30 text-blue-300 border border-blue-800"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className="card">
         <h2 className="text-2xl font-bold text-white mb-6">{editMode ? "Edit Watchlist" : "Create New Watchlist"}</h2>
 
@@ -186,13 +224,20 @@ export default function Watchlist() {
               onChange={(e) => setCurrentWatchlist((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="Enter watchlist name (e.g., Automobiles, Tech Stocks)"
               className="input-field"
+              disabled={!dbInitialized || isLoading}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Stock A</label>
-              <select name="stockA" value={selectedPair.stockA} onChange={handlePairSelection} className="input-field">
+              <select
+                name="stockA"
+                value={selectedPair.stockA}
+                onChange={handlePairSelection}
+                className="input-field"
+                disabled={!dbInitialized || isLoading}
+              >
                 <option value="">Select Stock A</option>
                 {stocks.map((symbol) => (
                   <option key={`a-${symbol}`} value={symbol}>
@@ -203,7 +248,13 @@ export default function Watchlist() {
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Stock B</label>
-              <select name="stockB" value={selectedPair.stockB} onChange={handlePairSelection} className="input-field">
+              <select
+                name="stockB"
+                value={selectedPair.stockB}
+                onChange={handlePairSelection}
+                className="input-field"
+                disabled={!dbInitialized || isLoading}
+              >
                 <option value="">Select Stock B</option>
                 {stocks.map((symbol) => (
                   <option key={`b-${symbol}`} value={symbol}>
@@ -213,7 +264,11 @@ export default function Watchlist() {
               </select>
             </div>
             <div className="flex items-end">
-              <button onClick={addPairToWatchlist} className="btn-secondary w-full">
+              <button
+                onClick={addPairToWatchlist}
+                className="btn-secondary w-full"
+                disabled={!dbInitialized || isLoading}
+              >
                 Add Pair
               </button>
             </div>
@@ -240,6 +295,7 @@ export default function Watchlist() {
                           <button
                             onClick={() => removePairFromWatchlist(index)}
                             className="text-red-400 hover:text-red-300 transition-colors"
+                            disabled={isLoading}
                           >
                             Remove
                           </button>
@@ -252,22 +308,8 @@ export default function Watchlist() {
             </div>
           )}
 
-          {message.text && (
-            <div
-              className={`p-4 rounded-md ${
-                message.type === "success"
-                  ? "bg-green-900/30 text-green-300 border border-green-800"
-                  : message.type === "error"
-                    ? "bg-red-900/30 text-red-300 border border-red-800"
-                    : "bg-blue-900/30 text-blue-300 border border-blue-800"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
-
           <div className="flex flex-wrap gap-4">
-            <button onClick={handleSaveWatchlist} disabled={isLoading} className="btn-primary">
+            <button onClick={handleSaveWatchlist} disabled={!dbInitialized || isLoading} className="btn-primary">
               {isLoading ? (
                 <span className="flex items-center">
                   <svg
