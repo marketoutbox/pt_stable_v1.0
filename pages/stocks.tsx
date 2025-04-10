@@ -119,14 +119,14 @@ export default function Stocks() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-blue-100">Stock Data Management</h1>
-        <p className="text-blue-200 mt-2">Fetch and manage stock data from Yahoo Finance</p>
+        <h1 className="text-3xl font-bold gradient-text inline-block">Stock Data Management</h1>
+        <p className="text-navy-200 mt-2">Fetch and manage stock data from Yahoo Finance</p>
       </div>
 
       <Card>
         <div className="space-y-4">
           <div>
-            <label htmlFor="symbols" className="block text-sm font-medium text-blue-200 mb-1">
+            <label htmlFor="symbols" className="block text-sm font-medium text-navy-200 mb-1">
               Stock Symbols
             </label>
             <Input
@@ -135,7 +135,7 @@ export default function Stocks() {
               value={symbols}
               onChange={(e) => setSymbols(e.target.value)}
             />
-            <p className="mt-1 text-sm text-blue-300">Enter comma-separated stock symbols to fetch or load data</p>
+            <p className="mt-1 text-sm text-navy-300">Enter comma-separated stock symbols to fetch or load data</p>
           </div>
 
           <div className="flex flex-wrap gap-4">
@@ -143,7 +143,7 @@ export default function Stocks() {
               {loading ? (
                 <span className="flex items-center">
                   <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-900"
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-navy-950"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -175,10 +175,10 @@ export default function Stocks() {
             <div
               className={`p-3 rounded-md ${
                 message.type === "success"
-                  ? "bg-green-900/50 text-green-200 border border-green-800"
+                  ? "bg-gradient-to-r from-green-900/30 to-green-800/30 text-green-200 border border-green-800/20"
                   : message.type === "error"
-                    ? "bg-red-900/50 text-red-200 border border-red-800"
-                    : "bg-yellow-900/50 text-yellow-200 border border-yellow-800"
+                    ? "bg-gradient-to-r from-red-900/30 to-red-800/30 text-red-200 border border-red-800/20"
+                    : "bg-gradient-to-r from-yellow-900/30 to-yellow-800/30 text-yellow-200 border border-yellow-800/20"
               }`}
             >
               {message.text}
