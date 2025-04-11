@@ -22,9 +22,6 @@ export default function Layout({ children }) {
               <NavLink href="/stocks" current={router.pathname === "/stocks"}>
                 Stocks
               </NavLink>
-              <NavLink href="/watchlist" current={router.pathname === "/watchlist"}>
-                Watchlists
-              </NavLink>
               <NavLink href="/backtest" current={router.pathname === "/backtest"}>
                 Ratio Backtest
               </NavLink>
