@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -14,59 +14,37 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { toast } from "@/components/ui/use-toast"
-import {
-  getAllWatchlists,
-  createWatchlist,
-  updateWatchlist,
-  deleteWatchlist,
-  addPairToWatchlist,
-  removePairFromWatchlist,
-  getWatchlistById,
-  checkStockExists,
-} from "@/lib/watchlistDB"
 import { Plus, Trash2, Edit, X } from "lucide-react"
+import { useWatchlists } from "@/hooks/use-watchlists"
 
 export default function WatchlistManager() {
-  const [watchlists, setWatchlists] = useState([])
-  const [selectedWatchlist, setSelectedWatchlist] = useState(null)
+  const {
+    watchlists,
+    selectedWatchlist,
+    setSelectedWatchlist,
+    createWatchlist,
+    updateWatchlist,
+    deleteWatchlist,
+    addPairToWatchlist,
+    removePairFromWatchlist,
+  } = useWatchlists()
+
   const [newWatchlistName, setNewWatchlistName] = useState("")
   const [newPair, setNewPair] = useState({ stock1: "", stock2: "" })
   const [isAddingPair, setIsAddingPair] = useState(false)
   const [isEditingWatchlist, setIsEditingWatchlist] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
 
-  useEffect(() => {
-    loadWatchlists()
-  }, [])
-
-  const loadWatchlists = async () => {
-    try {
-      const lists = await getAllWatchlists()
-      setWatchlists(lists)
-      if (lists.length > 0 && !selectedWatchlist) {
-        setSelectedWatchlist(lists[0])
-      }
-    } catch (error) {
-      console.error("Error loading watchlists:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load watchlists",
-        variant: "destructive",
-      })
-    }
-  }
-
   const handleCreateWatchlist = async () => {
     if (!newWatchlistName.trim()) return
 
     try {
-      const newId = await createWatchlist({
+      await createWatchlist({
         name: newWatchlistName,
         description: "",
         pairs: [],
       })
       setNewWatchlistName("")
-      loadWatchlists()
       toast({
         title: "Success",
         description: "Watchlist created successfully",
@@ -84,11 +62,7 @@ export default function WatchlistManager() {
   const handleUpdateWatchlist = async (id, updates) => {
     try {
       await updateWatchlist(id, updates)
-      loadWatchlists()
-      if (selectedWatchlist && selectedWatchlist.id === id) {
-        const updated = await getWatchlistById(id)
-        setSelectedWatchlist(updated)
-      }
+      setIsEditingWatchlist(false)
       toast({
         title: "Success",
         description: "Watchlist updated successfully",
@@ -106,10 +80,6 @@ export default function WatchlistManager() {
   const handleDeleteWatchlist = async (id) => {
     try {
       await deleteWatchlist(id)
-      if (selectedWatchlist && selectedWatchlist.id === id) {
-        setSelectedWatchlist(null)
-      }
-      loadWatchlists()
       toast({
         title: "Success",
         description: "Watchlist deleted successfully",
@@ -126,33 +96,12 @@ export default function WatchlistManager() {
 
   const handleAddPair = async () => {
     if (!newPair.stock1 || !newPair.stock2 || !selectedWatchlist) return
-
     setIsValidating(true)
 
     try {
-      // Validate that both stocks exist in your database
-      const stock1Exists = await checkStockExists(newPair.stock1)
-      const stock2Exists = await checkStockExists(newPair.stock2)
-
-      if (!stock1Exists || !stock2Exists) {
-        toast({
-          title: "Error",
-          description: `One or more stocks not found in your database`,
-          variant: "destructive",
-        })
-        setIsValidating(false)
-        return
-      }
-
       await addPairToWatchlist(selectedWatchlist.id, newPair.stock1, newPair.stock2)
       setNewPair({ stock1: "", stock2: "" })
       setIsAddingPair(false)
-      loadWatchlists()
-
-      // Update the selected watchlist
-      const updated = await getWatchlistById(selectedWatchlist.id)
-      setSelectedWatchlist(updated)
-
       toast({
         title: "Success",
         description: "Pair added successfully",
@@ -161,7 +110,7 @@ export default function WatchlistManager() {
       console.error("Error adding pair:", error)
       toast({
         title: "Error",
-        description: "Failed to add pair",
+        description: error.message || "Failed to add pair",
         variant: "destructive",
       })
     } finally {
@@ -174,12 +123,6 @@ export default function WatchlistManager() {
 
     try {
       await removePairFromWatchlist(selectedWatchlist.id, stock1, stock2)
-
-      // Update the selected watchlist
-      const updated = await getWatchlistById(selectedWatchlist.id)
-      setSelectedWatchlist(updated)
-      loadWatchlists()
-
       toast({
         title: "Success",
         description: "Pair removed successfully",
@@ -294,7 +237,6 @@ export default function WatchlistManager() {
                     <Button
                       onClick={() => {
                         handleUpdateWatchlist(selectedWatchlist.id, { name: selectedWatchlist.name })
-                        setIsEditingWatchlist(false)
                       }}
                     >
                       Save
