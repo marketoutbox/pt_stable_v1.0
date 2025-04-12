@@ -16,6 +16,9 @@ export default function Backtest() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
+    // Check if window is defined (client-side)
+    if (typeof window === "undefined") return
+
     const fetchStocks = async () => {
       try {
         const db = await openDB("StockDatabase", 1)
