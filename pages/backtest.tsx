@@ -27,18 +27,6 @@ export default function Backtest() {
         const allStocks = await store.getAll()
         if (!allStocks.length) return
         setStocks(allStocks.map((stock) => stock.symbol))
-
-        // Check for URL parameters
-        const urlParams = new URLSearchParams(window.location.search)
-        const stockA = urlParams.get("stockA")
-        const stockB = urlParams.get("stockB")
-
-        if (stockA && stockB) {
-          setSelectedPair({
-            stockA,
-            stockB,
-          })
-        }
       } catch (error) {
         console.error("Error fetching stocks:", error)
       }
