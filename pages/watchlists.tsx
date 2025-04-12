@@ -21,6 +21,9 @@ export default function Watchlists() {
 
   // Load all watchlists on component mount
   useEffect(() => {
+    // Check if window is defined (client-side)
+    if (typeof window === "undefined") return
+
     async function loadWatchlists() {
       try {
         const allWatchlists = await getAllWatchlists()
