@@ -27,6 +27,36 @@ export default function Backtest() {
         const allStocks = await store.getAll()
         if (!allStocks.length) return
         setStocks(allStocks.map((stock) => stock.symbol))
+
+        // Check for URL parameters
+        const urlParams = new URLSearchParams(window.location.search)
+        const stockA = urlParams.get("stockA")
+        const stockB = urlParams.get("stockB")
+
+        if (stockA && stockB) {
+          setSelectedPair({
+            stockA,
+            stockB,
+          })
+
+          // Set default date range if not already set
+          if (!fromDate || !toDate) {
+            const today = new Date()
+            const oneYearAgo = new Date()
+            oneYearAgo.setFullYear(today.getFullYear() - 1)
+
+            setFromDate(oneYearAgo.toISOString().split("T")[0])
+            setToDate(today.toISOString().split("T")[0])
+
+            // We'll run the backtest after the state updates
+            setTimeout(() => {
+              const runBacktestButton = document.querySelector("button.btn-primary")
+              if (runBacktestButton) {
+                runBacktestButton.click()
+              }
+            }, 500)
+          }
+        }
       } catch (error) {
         console.error("Error fetching stocks:", error)
       }
