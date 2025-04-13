@@ -3,6 +3,19 @@
 import { useState, useEffect } from "react"
 import { openDB } from "idb"
 import calculateZScore from "../utils/calculations"
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  ZAxis,
+  ReferenceLine,
+} from "recharts"
 
 export default function PairAnalyzer() {
   const [stocks, setStocks] = useState([])
@@ -742,7 +755,8 @@ export default function PairAnalyzer() {
             </div>
 
             {/* Add a new section for trading recommendations based on the analysis */}
-            {/* Add this after the statistics cards but before the charts */}
+
+            {/* Add a new section for trading recommendations based on the analysis */}
 
             <div className="bg-navy-800/50 p-6 rounded-lg border border-navy-700 mb-8">
               <h3 className="text-xl font-semibold text-white mb-4">Pair Trading Recommendations</h3>
@@ -861,10 +875,31 @@ export default function PairAnalyzer() {
             <div className="space-y-8">
               <div className="bg-navy-800/50 p-6 rounded-lg border border-navy-700">
                 <h3 className="text-xl font-semibold text-white mb-4">Rolling Hedge Ratio Plot</h3>
-                <div className="h-64 bg-navy-900/50 rounded-md flex items-center justify-center">
-                  <p className="text-gray-400">
-                    [Chart visualization would be rendered here with a charting library like Chart.js or Recharts]
-                  </p>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={analysisData.dates.map((date, i) => ({
+                        date,
+                        hedgeRatio: analysisData.hedgeRatios[i],
+                      }))}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#3a4894" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fill: "#dce5f3" }}
+                        tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
+                        interval={Math.ceil(analysisData.dates.length / 10)}
+                      />
+                      <YAxis tick={{ fill: "#dce5f3" }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#192042", borderColor: "#3a4894", color: "#dce5f3" }}
+                        formatter={(value) => [value.toFixed(4), "Hedge Ratio (β)"]}
+                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                      />
+                      <Line type="monotone" dataKey="hedgeRatio" stroke="#ffd700" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
                 <p className="mt-4 text-sm text-gray-400">
                   This chart shows how the hedge ratio (β) between {selectedPair.stockA} and {selectedPair.stockB}{" "}
@@ -874,10 +909,41 @@ export default function PairAnalyzer() {
 
               <div className="bg-navy-800/50 p-6 rounded-lg border border-navy-700">
                 <h3 className="text-xl font-semibold text-white mb-4">Spread Chart</h3>
-                <div className="h-64 bg-navy-900/50 rounded-md flex items-center justify-center">
-                  <p className="text-gray-400">
-                    [Chart visualization would be rendered here with a charting library like Chart.js or Recharts]
-                  </p>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={analysisData.dates.map((date, i) => ({
+                        date,
+                        spread: analysisData.spreads[i],
+                        mean: analysisData.chartData.rollingMean[i],
+                        upperBand1: analysisData.chartData.rollingUpperBand1[i],
+                        lowerBand1: analysisData.chartData.rollingLowerBand1[i],
+                        upperBand2: analysisData.chartData.rollingUpperBand2[i],
+                        lowerBand2: analysisData.chartData.rollingLowerBand2[i],
+                      }))}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#3a4894" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fill: "#dce5f3" }}
+                        tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
+                        interval={Math.ceil(analysisData.dates.length / 10)}
+                      />
+                      <YAxis tick={{ fill: "#dce5f3" }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#192042", borderColor: "#3a4894", color: "#dce5f3" }}
+                        formatter={(value) => [value.toFixed(4), "Value"]}
+                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                      />
+                      <Line type="monotone" dataKey="spread" stroke="#ffd700" dot={false} />
+                      <Line type="monotone" dataKey="mean" stroke="#ffffff" dot={false} strokeDasharray="5 5" />
+                      <Line type="monotone" dataKey="upperBand1" stroke="#3a4894" dot={false} strokeDasharray="3 3" />
+                      <Line type="monotone" dataKey="lowerBand1" stroke="#3a4894" dot={false} strokeDasharray="3 3" />
+                      <Line type="monotone" dataKey="upperBand2" stroke="#ff6b6b" dot={false} strokeDasharray="3 3" />
+                      <Line type="monotone" dataKey="lowerBand2" stroke="#ff6b6b" dot={false} strokeDasharray="3 3" />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
                 <p className="mt-4 text-sm text-gray-400">
                   This chart shows the spread between {selectedPair.stockA} and {selectedPair.stockB} with rolling mean
@@ -887,10 +953,36 @@ export default function PairAnalyzer() {
 
               <div className="bg-navy-800/50 p-6 rounded-lg border border-navy-700">
                 <h3 className="text-xl font-semibold text-white mb-4">Z-Score of Spread</h3>
-                <div className="h-64 bg-navy-900/50 rounded-md flex items-center justify-center">
-                  <p className="text-gray-400">
-                    [Chart visualization would be rendered here with a charting library like Chart.js or Recharts]
-                  </p>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={analysisData.dates.map((date, i) => ({
+                        date,
+                        zScore: analysisData.zScores[i],
+                      }))}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#3a4894" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fill: "#dce5f3" }}
+                        tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
+                        interval={Math.ceil(analysisData.dates.length / 10)}
+                      />
+                      <YAxis tick={{ fill: "#dce5f3" }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#192042", borderColor: "#3a4894", color: "#dce5f3" }}
+                        formatter={(value) => [value.toFixed(4), "Z-Score"]}
+                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                      />
+                      <ReferenceLine y={0} stroke="#ffffff" />
+                      <ReferenceLine y={1} stroke="#3a4894" strokeDasharray="3 3" />
+                      <ReferenceLine y={-1} stroke="#3a4894" strokeDasharray="3 3" />
+                      <ReferenceLine y={2} stroke="#ff6b6b" strokeDasharray="3 3" />
+                      <ReferenceLine y={-2} stroke="#ff6b6b" strokeDasharray="3 3" />
+                      <Line type="monotone" dataKey="zScore" stroke="#ffd700" dot={false} strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
                 <p className="mt-4 text-sm text-gray-400">
                   This chart shows the z-score of the spread, highlighting regions where z-score {">"} 2 or {"<"} -2.
@@ -902,10 +994,67 @@ export default function PairAnalyzer() {
                 <h3 className="text-xl font-semibold text-white mb-4">
                   Scatter Plot: {selectedPair.stockA} vs {selectedPair.stockB}
                 </h3>
-                <div className="h-64 bg-navy-900/50 rounded-md flex items-center justify-center">
-                  <p className="text-gray-400">
-                    [Chart visualization would be rendered here with a charting library like Chart.js or Recharts]
-                  </p>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#3a4894" />
+                      <XAxis
+                        type="number"
+                        dataKey="stockB"
+                        name={selectedPair.stockB}
+                        tick={{ fill: "#dce5f3" }}
+                        label={{ value: selectedPair.stockB, position: "insideBottomRight", fill: "#dce5f3" }}
+                      />
+                      <YAxis
+                        type="number"
+                        dataKey="stockA"
+                        name={selectedPair.stockA}
+                        tick={{ fill: "#dce5f3" }}
+                        label={{ value: selectedPair.stockA, angle: -90, position: "insideLeft", fill: "#dce5f3" }}
+                      />
+                      <ZAxis range={[15, 15]} />
+                      <Tooltip
+                        cursor={{ strokeDasharray: "3 3" }}
+                        contentStyle={{ backgroundColor: "#192042", borderColor: "#3a4894", color: "#dce5f3" }}
+                        formatter={(value) => [value.toFixed(2), ""]}
+                      />
+                      <Scatter
+                        name="Stock Prices"
+                        data={analysisData.stockAPrices.map((priceA, i) => ({
+                          stockA: priceA,
+                          stockB: analysisData.stockBPrices[i],
+                          date: analysisData.dates[i],
+                        }))}
+                        fill="#ffd700"
+                      />
+                      {/* Add regression line */}
+                      {(() => {
+                        if (analysisData.stockBPrices.length > 0) {
+                          const lastBeta = analysisData.hedgeRatios[analysisData.hedgeRatios.length - 1]
+                          const lastAlpha = analysisData.alphas[analysisData.alphas.length - 1]
+                          const minB = Math.min(...analysisData.stockBPrices)
+                          const maxB = Math.max(...analysisData.stockBPrices)
+
+                          return (
+                            <Line
+                              type="linear"
+                              dataKey="stockA"
+                              data={[
+                                { stockB: minB, stockA: lastAlpha + lastBeta * minB },
+                                { stockB: maxB, stockA: lastAlpha + lastBeta * maxB },
+                              ]}
+                              stroke="#ff6b6b"
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={false}
+                              legendType="none"
+                            />
+                          )
+                        }
+                        return null
+                      })()}
+                    </ScatterChart>
+                  </ResponsiveContainer>
                 </div>
                 <p className="mt-4 text-sm text-gray-400">
                   This scatter plot shows the relationship between {selectedPair.stockA} and {selectedPair.stockB} with
